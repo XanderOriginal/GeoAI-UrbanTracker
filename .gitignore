@@ -1,0 +1,68 @@
+## .NET
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww]in32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio
+.vs/
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+## Rider / JetBrains
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/
+!.vscode/extensions.json
+
+## User secrets (на випадок якщо хтось забуде user-secrets і трimне в проєкт)
+secrets.json
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Production.json.example
+
+## Environment / API keys
+.env
+.env.local
+*.env
+
+## Node (якщо буде окремий frontend/React)
+node_modules/
+dist/
+npm-debug.log*
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Database
+*.db
+*.sqlite
+*.mdf
+*.ldf
