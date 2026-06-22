@@ -17,6 +17,11 @@ builder.Services.Configure<GeminiOptions>(
 builder.Services.AddHttpClient<SatelliteImageService>();
 builder.Services.AddScoped<ISatelliteImageService, SatelliteImageService>();
 
+builder.Services.AddHttpClient<GeminiAnalysisService>();
+builder.Services.AddScoped<IGeminiAnalysisService, GeminiAnalysisService>();
+
+builder.Services.AddScoped<IImageDiffService, ImageDiffService>();
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
