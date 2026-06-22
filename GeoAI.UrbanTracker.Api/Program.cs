@@ -1,4 +1,21 @@
+using GeoAI.UrbanTracker.Api.Data;
+using GeoAI.UrbanTracker.Api.Configuration;
+using GeoAI.UrbanTracker.Api.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.Configure<SentinelHubOptions>(
+    builder.Configuration.GetSection(SentinelHubOptions.SectionName));
+
+builder.Services.Configure<GeminiOptions>(
+    builder.Configuration.GetSection(GeminiOptions.SectionName));
+
+builder.Services.AddHttpClient<SatelliteImageService>();
+builder.Services.AddScoped<ISatelliteImageService, SatelliteImageService>();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
