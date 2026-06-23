@@ -1,6 +1,5 @@
 using GeoAI.UrbanTracker.Api.Helpers.ImageProcessing;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 
 namespace GeoAI.UrbanTracker.Api.Services;
 
@@ -21,15 +20,15 @@ public class ImageDiffService : IImageDiffService
         _logger.LogInformation("Computing image diff between {Before} and {After}",
             beforeImagePath, afterImagePath);
 
-        using var beforeImage = await Image.LoadAsync<Rgb24>(beforeImagePath, cancellationToken);
-        using var afterImage = await Image.LoadAsync<Rgb24>(afterImagePath, cancellationToken);
+        var beforeBytes = await File.ReadAllBytesAsync(beforeImagePath, cancellationToken);
+        var afterBytes = await File.ReadAllBytesAsync(afterImagePath, cancellationToken);
 
-        var beforeStats = AnalyzeImage(beforeImage);
-        var afterStats = AnalyzeImage(afterImage);
+        var beforeStats = AnalyzeImage(beforeBytes);
+        var afterStats = AnalyzeImage(afterBytes);
 
         var ndviChangePct = beforeStats.avgVegetation > 0
             ? ((afterStats.avgVegetation - beforeStats.avgVegetation) / beforeStats.avgVegetation) * 100
-            : afterStats.avgVegetation * 100;
+            : 0;
 
         var builtUpChangePct = beforeStats.builtUpRatio > 0
             ? ((afterStats.builtUpRatio - beforeStats.builtUpRatio) / beforeStats.builtUpRatio) * 100
@@ -37,7 +36,7 @@ public class ImageDiffService : IImageDiffService
 
         var greenChangePct = beforeStats.greenRatio > 0
             ? ((afterStats.greenRatio - beforeStats.greenRatio) / beforeStats.greenRatio) * 100
-            : afterStats.greenRatio * 100;
+            : 0;
 
         _logger.LogInformation(
             "Diff computed: NDVI {NdviChange:+0.00;-0.00}%, BuiltUp {BuiltUpChange:+0.00;-0.00}%",
@@ -52,32 +51,29 @@ public class ImageDiffService : IImageDiffService
     }
 
     private static (double avgVegetation, double builtUpRatio, double greenRatio) AnalyzeImage(
-        Image<Rgb24> image)
+        byte[] imageBytes)
     {
+        using var bitmap = SKBitmap.Decode(imageBytes);
+
         double totalVegetation = 0;
         int builtUpPixels = 0;
         int greenPixels = 0;
-        int totalPixels = image.Width * image.Height;
+        int totalPixels = bitmap.Width * bitmap.Height;
 
-        image.ProcessPixelRows(accessor =>
+        for (int y = 0; y < bitmap.Height; y++)
         {
-            for (int y = 0; y < accessor.Height; y++)
+            for (int x = 0; x < bitmap.Width; x++)
             {
-                var row = accessor.GetRowSpan(y);
-                for (int x = 0; x < row.Length; x++)
-                {
-                    var pixel = row[x];
-                    totalVegetation += NdviCalculator.EstimateVegetationIndex(pixel.R, pixel.G, pixel.B);
+                var pixel = bitmap.GetPixel(x, y);
+                totalVegetation += NdviCalculator.EstimateVegetationIndex(pixel.Red, pixel.Green, pixel.Blue);
 
-                    if (NdviCalculator.IsBuiltUp(pixel.R, pixel.G, pixel.B))
-                        builtUpPixels++;
+                if (NdviCalculator.IsBuiltUp(pixel.Red, pixel.Green, pixel.Blue))
+                    builtUpPixels++;
 
-                    // Зелений піксель: g значно більший за r і b
-                    if (pixel.G > pixel.R + 10 && pixel.G > pixel.B + 10)
-                        greenPixels++;
-                }
+                if (pixel.Green > pixel.Red + 10 && pixel.Green > pixel.Blue + 10)
+                    greenPixels++;
             }
-        });
+        }
 
         return (
             avgVegetation: totalVegetation / totalPixels,
