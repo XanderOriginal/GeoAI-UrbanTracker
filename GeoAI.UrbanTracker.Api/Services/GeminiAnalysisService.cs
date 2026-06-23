@@ -87,7 +87,11 @@ public class GeminiAnalysisService : IGeminiAnalysisService
         var json = JsonSerializer.Serialize(requestBody);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_options.ApiKey}";
+        var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+        _httpClient.DefaultRequestHeaders.Remove("x-goog-api-key");
+        _httpClient.DefaultRequestHeaders.Add("x-goog-api-key", _options.ApiKey);
+
         var response = await _httpClient.PostAsync(url, content, cancellationToken);
 
         response.EnsureSuccessStatusCode();
