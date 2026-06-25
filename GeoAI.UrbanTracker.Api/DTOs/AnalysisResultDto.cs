@@ -15,4 +15,16 @@ public class AnalysisResultDto
 
     public DateTime CreatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+
+    // Координати для overlay знімків на карті
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public int? RadiusMeters { get; set; }
+
+    // URL до знімків (для overlay на карті)
+    public string? BeforeImageUrl { get; set; }
+    public string? AfterImageUrl { get; set; }
+
+    public DateOnly? DateFrom { get; set; }
+    public DateOnly? DateTo { get; set; }
 }

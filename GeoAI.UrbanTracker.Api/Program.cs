@@ -23,6 +23,21 @@ builder.Services.AddScoped<IGeminiAnalysisService, GeminiAnalysisService>();
 builder.Services.AddScoped<IImageDiffService, ImageDiffService>();
 builder.Services.AddScoped<IAnalysisOrchestratorService, AnalysisOrchestratorService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",   
+                "http://localhost:5173",   
+                "http://localhost:5500",   
+                "http://127.0.0.1:5500"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -34,6 +49,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
+app.UseCors("AllowFrontend");
+
 app.MapControllers();
 
 app.Run();

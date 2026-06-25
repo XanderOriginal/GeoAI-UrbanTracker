@@ -51,34 +51,49 @@ public class ImageDiffService : IImageDiffService
     }
 
     private static (double avgVegetation, double builtUpRatio, double greenRatio) AnalyzeImage(
-        byte[] imageBytes)
+    byte[] imageBytes)
     {
         using var bitmap = SKBitmap.Decode(imageBytes);
 
         double totalVegetation = 0;
         int builtUpPixels = 0;
         int greenPixels = 0;
-        int totalPixels = bitmap.Width * bitmap.Height;
+        int validPixels = 0; // рахуємо тільки не-чорні пікселі
 
         for (int y = 0; y < bitmap.Height; y++)
         {
             for (int x = 0; x < bitmap.Width; x++)
             {
                 var pixel = bitmap.GetPixel(x, y);
-                totalVegetation += NdviCalculator.EstimateVegetationIndex(pixel.Red, pixel.Green, pixel.Blue);
+
+                // Пропускаємо повністю чорні пікселі (no-data)
+                if (pixel.Red < 5 && pixel.Green < 5 && pixel.Blue < 5)
+                    continue;
+
+                validPixels++;
+                totalVegetation += NdviCalculator.EstimateVegetationIndex(
+                    pixel.Red, pixel.Green, pixel.Blue);
 
                 if (NdviCalculator.IsBuiltUp(pixel.Red, pixel.Green, pixel.Blue))
                     builtUpPixels++;
 
-                if (pixel.Green > pixel.Red + 10 && pixel.Green > pixel.Blue + 10)
+                // Зелений: g помітно більший за r і b
+                if (pixel.Green > pixel.Red + 15 && pixel.Green > pixel.Blue + 15)
                     greenPixels++;
             }
         }
 
+        // Якщо занадто мало валідних пікселів — знімок поганий
+        int total = bitmap.Width * bitmap.Height;
+        if (validPixels < total * 0.1) // менше 10% валідних пікселів
+        {
+            return (0, 0, 0);
+        }
+
         return (
-            avgVegetation: totalVegetation / totalPixels,
-            builtUpRatio: builtUpPixels / (double)totalPixels,
-            greenRatio: greenPixels / (double)totalPixels
+            avgVegetation: totalVegetation / validPixels,
+            builtUpRatio: builtUpPixels / (double)validPixels,
+            greenRatio: greenPixels / (double)validPixels
         );
     }
 }

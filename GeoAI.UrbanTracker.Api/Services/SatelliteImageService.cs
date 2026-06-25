@@ -114,8 +114,8 @@ public class SatelliteImageService : ISatelliteImageService
                         {
                             timeRange = new
                             {
-                                from = $"{dateStr}T00:00:00Z",
-                                to = $"{dateStr}T23:59:59Z"
+                                from = $"{date.AddDays(-15):yyyy-MM-dd}T00:00:00Z",
+                                to = $"{date.AddDays(15):yyyy-MM-dd}T23:59:59Z"
                             },
                             maxCloudCoverage = 30
                         }

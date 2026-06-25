@@ -52,16 +52,14 @@ public class AnalysisController : ControllerBase
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AnalysisResultDto>> GetAnalysis(
-        Guid id,
-        CancellationToken cancellationToken)
+    Guid id, CancellationToken cancellationToken)
     {
         var request = await _db.AnalysisRequests
             .Include(r => r.Result)
+            .Include(r => r.SatelliteImages)  // ← додай
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
-        if (request is null)
-            return NotFound();
-
+        if (request is null) return NotFound();
         return Ok(MapToDto(request, request.Result));
     }
 
@@ -71,14 +69,28 @@ public class AnalysisController : ControllerBase
     {
         var requests = await _db.AnalysisRequests
             .Include(r => r.Result)
+            .Include(r => r.SatelliteImages)  // ← додай
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
 
         return Ok(requests.Select(r => MapToDto(r, r.Result)).ToList());
     }
 
-    private static AnalysisResultDto MapToDto(AnalysisRequest request, AnalysisResult? result) =>
-        new()
+    private static AnalysisResultDto MapToDto(AnalysisRequest request, AnalysisResult? result)
+    {
+        var beforeImage = request.SatelliteImages
+            .FirstOrDefault(i => i.IsBeforeImage);
+        var afterImage = request.SatelliteImages
+            .FirstOrDefault(i => !i.IsBeforeImage);
+
+        string? BuildImageUrl(string? filePath)
+        {
+            if (filePath == null) return null;
+            var filename = Path.GetFileName(filePath);
+            return $"/images/{filename}";
+        }
+
+        return new AnalysisResultDto
         {
             RequestId = request.Id,
             Status = request.Status,
@@ -88,6 +100,14 @@ public class AnalysisController : ControllerBase
             GreenAreaChangePercent = result?.GreenAreaChangePercent,
             GeminiSummary = result?.GeminiSummary,
             CreatedAt = request.CreatedAt,
-            CompletedAt = request.CompletedAt
+            CompletedAt = request.CompletedAt,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            RadiusMeters = request.RadiusMeters,
+            BeforeImageUrl = BuildImageUrl(beforeImage?.FilePath),
+            AfterImageUrl = BuildImageUrl(afterImage?.FilePath),
+            DateFrom = request.DateFrom,
+            DateTo = request.DateTo,
         };
+    }
 }
