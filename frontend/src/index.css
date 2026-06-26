@@ -1,0 +1,142 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* === CYBERPUNK PALETTE === */
+  --bg-void:    #000000;
+  --bg-surface: #080c10;
+  --bg-panel:   #0a0f16;
+  --bg-glass:   rgba(8, 12, 16, 0.88);
+  --bg-card:    rgba(10, 15, 22, 0.95);
+  --bg-hover:   rgba(0, 255, 136, 0.04);
+
+  /* Neon green (primary) */
+  --neon:        #00ff88;
+  --neon-dim:    rgba(0, 255, 136, 0.12);
+  --neon-glow:   rgba(0, 255, 136, 0.35);
+  --neon-border: rgba(0, 255, 136, 0.3);
+
+  /* Neon cyan (secondary) */
+  --cyan:        #00e5ff;
+  --cyan-dim:    rgba(0, 229, 255, 0.1);
+  --cyan-glow:   rgba(0, 229, 255, 0.3);
+
+  /* Alert red */
+  --red:         #ff3355;
+  --red-dim:     rgba(255, 51, 85, 0.12);
+
+  /* Amber */
+  --amber:       #ffaa00;
+  --amber-dim:   rgba(255, 170, 0, 0.12);
+
+  /* Text */
+  --text-primary:   #e8f4e8;
+  --text-secondary: #7a9a7a;
+  --text-muted:     #3a5a3a;
+  --text-neon:      #00ff88;
+
+  /* Borders */
+  --border:        rgba(0, 255, 136, 0.1);
+  --border-active: rgba(0, 255, 136, 0.4);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Fonts */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  /* Radius — sharper for cyberpunk */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Leaflet */
+.leaflet-container {
+  background: #000;
+  font-family: var(--font-body);
+}
+.leaflet-control-zoom { display: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--neon-border); border-radius: 2px; }
+
+/* Selection */
+::selection { background: var(--neon-dim); color: var(--neon); }
+
+/* ===== ANIMATIONS ===== */
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--neon-glow), 0 0 20px var(--neon-dim); }
+  50%       { box-shadow: 0 0 16px var(--neon-glow), 0 0 40px var(--neon-dim), 0 0 80px rgba(0,255,136,0.08); }
+}
+
+@keyframes scan-sweep {
+  0%   { top: -2px; opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96%           { opacity: 0.7; }
+  98%           { opacity: 0.9; }
+}
+
+@keyframes border-run {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+@keyframes step-fill {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+@keyframes glitch {
+  0%, 100% { clip-path: none; transform: none; }
+  20%  { clip-path: polygon(0 30%, 100% 30%, 100% 35%, 0 35%); transform: translate(-2px, 0); }
+  40%  { clip-path: polygon(0 60%, 100% 60%, 100% 65%, 0 65%); transform: translate(2px, 0); }
+  60%  { clip-path: none; transform: none; }
+}
+
+@keyframes radar-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

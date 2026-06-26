@@ -1,0 +1,113 @@
+.map-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Pulse marker */
+.map-pulse-marker {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #3b82f6;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.pulse-ring-2 {
+  animation-delay: 0.6s;
+}
+
+.pulse-core {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 12px #3b82f6;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Map hint */
+.map-hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 10px 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.map-hint-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--blue-400);
+  flex-shrink: 0;
+}
+
+.map-hint-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Scan overlay */
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--blue-400), transparent);
+  animation: scan-sweep 3s ease-in-out infinite;
+  box-shadow: 0 0 20px var(--blue-glow);
+}
+
+@keyframes scan-sweep {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Map attribution */
+.map-attribution {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  z-index: 500;
+  font-size: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
