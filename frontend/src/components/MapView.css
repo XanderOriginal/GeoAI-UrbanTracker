@@ -43,8 +43,8 @@
 
 /* Map hint */
 .map-hint {
-  position: absolute;
-  bottom: 40px;
+  position: fixed;       
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 500;

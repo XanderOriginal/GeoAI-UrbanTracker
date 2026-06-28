@@ -72,7 +72,7 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
               {isSuccess ? (
                 <>
                   <div className="ro-status-dot success" />
-                  <span className="ro-header-title">АНАЛІЗ ЗАВЕРШЕНО</span>
+                  <span className="ro-header-title">ANALYSIS COMPLETED</span>
                   <span className="ro-header-sub">
                     {result?.completedAt
                       ? new Date(result.completedAt).toLocaleString('uk-UA')
@@ -82,7 +82,7 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
               ) : (
                 <>
                   <div className="ro-status-dot error" />
-                  <span className="ro-header-title error">АНАЛІЗ НЕ ВДАВСЯ</span>
+                  <span className="ro-header-title error">ANALYSIS FAILED</span>
                 </>
               )}
             </div>
@@ -104,15 +104,15 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
           {isError && (
             <div className="ro-error-body">
               <div className="ro-error-icon">⚠</div>
-              <div className="ro-error-title">ПОМИЛКА ВИКОНАННЯ</div>
+              <div className="ro-error-title">EXECUTION ERROR</div>
               <div className="ro-error-msg">
-                {error || result?.errorMessage || 'Перевірте підключення до сервера або спробуйте іншу локацію та дати'}
+                {error || result?.errorMessage || 'Check your server connection or try a different location and dates.'}
               </div>
               <button className="ro-reset-btn" onClick={onReset}>
                 <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 14, height: 14 }}>
                   <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"/>
                 </svg>
-                НОВИЙ АНАЛІЗ
+                NEW ANALYSIS
               </button>
             </div>
           )}
@@ -123,19 +123,19 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
 
               {/* === LEFT: Images === */}
               <div className="ro-images-col">
-                <div className="ro-img-section-title">СУПУТНИКОВІ ЗНІМКИ SENTINEL-2</div>
+                <div className="ro-img-section-title">SENTINEL-2 SATELLITE IMAGES</div>
 
                 <div className="ro-images-grid">
                   {/* Before */}
                   <div className="ro-img-card">
                     <div className="ro-img-header before">
-                      <span className="ro-img-tag">ДО</span>
+                      <span className="ro-img-tag">BEFORE</span>
                       <span className="ro-img-date">{result.dateFrom || ''}</span>
                     </div>
                     {result.beforeImageUrl ? (
                       <img
                         src={`${BASE_URL}${result.beforeImageUrl}`}
-                        alt="До аналізу"
+                        alt="Before analysis"
                         className="ro-img"
                         onError={e => {
                           e.target.style.display = 'none';
@@ -144,20 +144,20 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                       />
                     ) : null}
                     <div className="ro-img-fallback" style={{ display: result.beforeImageUrl ? 'none' : 'flex' }}>
-                      <span>Знімок недоступний</span>
+                      <span>Snapshot unavailable</span>
                     </div>
                   </div>
 
                   {/* After */}
                   <div className="ro-img-card">
                     <div className="ro-img-header after">
-                      <span className="ro-img-tag">ПІСЛЯ</span>
+                      <span className="ro-img-tag">AFTER</span>
                       <span className="ro-img-date">{result.dateTo || ''}</span>
                     </div>
                     {result.afterImageUrl ? (
                       <img
                         src={`${BASE_URL}${result.afterImageUrl}`}
-                        alt="Після аналізу"
+                        alt="After analysis"
                         className="ro-img"
                         onError={e => {
                           e.target.style.display = 'none';
@@ -166,7 +166,7 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                       />
                     ) : null}
                     <div className="ro-img-fallback" style={{ display: result.afterImageUrl ? 'none' : 'flex' }}>
-                      <span>Знімок недоступний</span>
+                      <span>Snapshot unavailable</span>
                     </div>
                   </div>
                 </div>
@@ -174,11 +174,11 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                 {/* Location info */}
                 {result.latitude && (
                   <div className="ro-location-info">
-                    <span className="ro-loc-tag">КООРДИНАТИ</span>
+                    <span className="ro-loc-tag">COORDINATES</span>
                     <span className="ro-loc-val">
                       {result.latitude?.toFixed(5)}°N &nbsp; {result.longitude?.toFixed(5)}°E
                     </span>
-                    <span className="ro-loc-tag" style={{ marginLeft: 12 }}>РАДІУС</span>
+                    <span className="ro-loc-tag" style={{ marginLeft: 12 }}>RADIUS</span>
                     <span className="ro-loc-val">
                       {result.radiusMeters >= 1000
                         ? `${(result.radiusMeters / 1000).toFixed(1)} км`
@@ -196,23 +196,23 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                 {/* Metrics */}
                 <div className="ro-metrics-section">
                   <div className="ro-section-title">
-                    <span className="ro-section-tag">МЕТРИКИ</span>
-                    ЗМІНИ ЗА PERIOD
+                    <span className="ro-section-tag">METRICS</span>
+                    CHANGES PER PERIOD
                   </div>
 
                   <div className="ro-metrics-grid">
                     <Metric
-                      label="ЗАБУДОВА"
+                      label="CONSTRUCTION"
                       value={result.builtUpAreaChangePercent}
                       positiveIsBad={true}
                     />
                     <Metric
-                      label="ЗЕЛЕНІ ЗОНИ"
+                      label="GREEN AREAS"
                       value={result.greenAreaChangePercent}
                       positiveIsBad={false}
                     />
                     <Metric
-                      label="NDVI ІНДЕКС"
+                      label="NDVI INDEX"
                       value={result.ndviChangePercent}
                       positiveIsBad={false}
                     />
@@ -222,15 +222,15 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                   <div className="ro-metrics-legend">
                     <div className="legend-item">
                       <div className="legend-dot" style={{ background: 'var(--red)' }} />
-                      <span>Негативна зміна</span>
+                      <span>Negative change</span>
                     </div>
                     <div className="legend-item">
                       <div className="legend-dot" style={{ background: 'var(--neon)' }} />
-                      <span>Позитивна зміна</span>
+                      <span>Positive change</span>
                     </div>
                     <div className="legend-item">
                       <div className="legend-dot" style={{ background: 'var(--text-muted)' }} />
-                      <span>Без змін</span>
+                      <span>No changes</span>
                     </div>
                   </div>
                 </div>
@@ -242,7 +242,7 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                   <div className="ro-ai-section">
                     <div className="ro-section-title">
                       <span className="ro-section-tag cyan">AI</span>
-                      АНАЛІЗ GEMINI VISION
+                      GEMINI VISION ANALYSIS
                       <span className="ro-ai-model">gemini-2.5-flash</span>
                     </div>
                     <div className="ro-ai-text">
@@ -267,10 +267,10 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                     <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 14, height: 14 }}>
                       <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"/>
                     </svg>
-                    НОВИЙ АНАЛІЗ
+                    NEW ANALYSIS
                   </button>
                   <button className="ro-close-action-btn" onClick={onClose}>
-                    ПОВЕРНУТИСЬ ДО КАРТИ
+                    RETURN TO MAP
                   </button>
                 </div>
               </div>

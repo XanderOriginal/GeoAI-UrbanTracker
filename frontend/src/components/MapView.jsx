@@ -81,26 +81,8 @@ export default function MapView({ selectedPoint, radius, onMapClick, step }) {
         )}
       </MapContainer>
 
-      {/* Click hint overlay */}
-      <AnimatePresence>
-        {step === 1 && (
-          <motion.div
-            className="map-hint"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="map-hint-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-            </div>
-            <span>Click anywhere on the map to select analysis point</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+     
+      
 
       {/* Scan overlay when running */}
       <AnimatePresence>

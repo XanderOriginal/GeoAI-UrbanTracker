@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import MapView from './components/MapView';
 import TopBar from './components/TopBar';
 import WizardPanel from './components/WizardPanel';
@@ -9,27 +10,21 @@ import './App.css';
 
 export default function App() {
   const [view, setView] = useState('analyze');
-  // step: 1=pick point, 2=params, 3=scanning, 4=results overlay
   const [step, setStep] = useState(1);
 
-  // Map state
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [radius, setRadius] = useState(2000);
 
-  // Form state
   const [dateFrom, setDateFrom] = useState('2020-06-01');
   const [dateTo, setDateTo] = useState('2023-06-01');
 
-  // Analysis state
   const [analysisId, setAnalysisId] = useState(null);
   const [analysisStatus, setAnalysisStatus] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  // Results overlay visibility (separate from step so map stays visible)
   const [showResults, setShowResults] = useState(false);
 
-  // When step becomes 4 → show results overlay
   const handleSetStep = useCallback((newStep) => {
     setStep(newStep);
     if (newStep === 4) {
@@ -57,7 +52,6 @@ export default function App() {
   }, []);
 
   const handleCloseResults = useCallback(() => {
-    // Hide overlay but keep the map with circle visible
     setShowResults(false);
   }, []);
 
@@ -73,12 +67,31 @@ export default function App() {
           step={step}
         />
 
+        <AnimatePresence>
+          {step === 1 && (
+            <motion.div
+              className="map-hint-global"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="map-hint-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <span>Click anywhere on the map to select analysis point</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {view === 'analyze' && (
           <>
-            {/* Step 1 & 2: Wizard panel */}
             <WizardPanel
               step={step}
-              setStep={setStep}
+              setStep={handleSetStep}
               selectedPoint={selectedPoint}
               radius={radius}
               setRadius={setRadius}
@@ -92,7 +105,6 @@ export default function App() {
               setError={setError}
             />
 
-            {/* Step 3: Scanning panel (small, top-right) */}
             {step === 3 && (
               <ScanPanel
                 analysisId={analysisId}
@@ -103,7 +115,6 @@ export default function App() {
               />
             )}
 
-            {/* Step 4: Fullscreen results overlay */}
             {showResults && (
               <ResultsOverlay
                 result={result}

@@ -45,7 +45,7 @@ public class SatelliteImageService : ISatelliteImageService
         var filePath = Path.Combine(directory, fileName);
         await File.WriteAllBytesAsync(filePath, imageBytes, cancellationToken);
 
-        _logger.LogInformation("Saved satellite image to {FilePath}", filePath);
+        _logger.LogInformation("Saved satellite image to {FilePath} ({Bytes} bytes)", filePath, imageBytes.Length);
 
         return new SatelliteImage
         {
@@ -95,7 +95,53 @@ public class SatelliteImageService : ISatelliteImageService
         DateOnly date,
         CancellationToken cancellationToken)
     {
-        var dateStr = date.ToString("yyyy-MM-dd");
+        // Стратегія: сезонне вікно ±30 днів навколо дати.
+        // Це зберігає сезонність (порівнюємо однакові місяці між роками)
+        // і дає достатньо часу знайти чистий знімок.
+        // Приклад: DateFrom=2020-06-01 → шукаємо 2020-05-02..2020-07-01
+        //          DateTo=2023-06-01   → шукаємо 2023-05-02..2023-07-01
+        var windowStart = date.AddDays(-30);
+        var windowEnd = date.AddDays(30);
+
+        // Перша спроба: суворий поріг хмарності 10%
+        var imageBytes = await TryFetchWithCloudLimit(bbox, windowStart, windowEnd, maxCloud: 10, cancellationToken);
+
+        // Fallback: якщо за 60-денним вікном з 10% нічого — розширюємо до 20%
+        if (imageBytes is null)
+        {
+            _logger.LogWarning(
+                "No image with ≤10% cloud cover in window {From}–{To}. Retrying with ≤20%...",
+                windowStart, windowEnd);
+            imageBytes = await TryFetchWithCloudLimit(bbox, windowStart, windowEnd, maxCloud: 20, cancellationToken);
+        }
+
+        // Останній fallback: 35% і розширене вікно ±60 днів
+        if (imageBytes is null)
+        {
+            var wideStart = date.AddDays(-60);
+            var wideEnd = date.AddDays(60);
+            _logger.LogWarning(
+                "Still no clean image. Expanding window to {From}–{To} with ≤35% cloud cover...",
+                wideStart, wideEnd);
+            imageBytes = await TryFetchWithCloudLimit(bbox, wideStart, wideEnd, maxCloud: 35, cancellationToken);
+        }
+
+        if (imageBytes is null)
+            throw new InvalidOperationException(
+                $"No usable Sentinel-2 image found near {date:yyyy-MM-dd}. " +
+                "Try a different date or location with less persistent cloud cover.");
+
+        _logger.LogInformation("Received {Bytes} bytes for target date {Date}", imageBytes.Length, date);
+        return imageBytes;
+    }
+
+    private async Task<byte[]?> TryFetchWithCloudLimit(
+        (double minLng, double minLat, double maxLng, double maxLat) bbox,
+        DateOnly windowStart,
+        DateOnly windowEnd,
+        int maxCloud,
+        CancellationToken cancellationToken)
+    {
         var requestBody = new
         {
             input = new
@@ -114,10 +160,11 @@ public class SatelliteImageService : ISatelliteImageService
                         {
                             timeRange = new
                             {
-                                from = $"{date.AddDays(-15):yyyy-MM-dd}T00:00:00Z",
-                                to = $"{date.AddDays(15):yyyy-MM-dd}T23:59:59Z"
+                                from = $"{windowStart:yyyy-MM-dd}T00:00:00Z",
+                                to   = $"{windowEnd:yyyy-MM-dd}T23:59:59Z"
                             },
-                            maxCloudCoverage = 30
+                            maxCloudCoverage = maxCloud,
+                            mosaickingOrder  = "leastCC"
                         }
                     }
                 }
@@ -131,7 +178,19 @@ public class SatelliteImageService : ISatelliteImageService
                     new { identifier = "default", format = new { type = "image/png" } }
                 }
             },
-            evalscript = "//VERSION=3\nfunction setup() { return { input: ['B04','B03','B02'], output: { bands: 3 } }; }\nfunction evaluatePixel(s) { return [3.5*s.B04, 3.5*s.B03, 3.5*s.B02]; }"
+            evalscript = @"//VERSION=3
+function setup() {
+  return {
+    input: [{ bands: ['B04', 'B03', 'B02'], units: 'REFLECTANCE' }],
+    output: { bands: 3, sampleType: 'UINT8' }
+  };
+}
+function evaluatePixel(sample) {
+  var r = Math.min(255, Math.pow(Math.max(0, sample.B04), 0.7) * 400);
+  var g = Math.min(255, Math.pow(Math.max(0, sample.B03), 0.7) * 400);
+  var b = Math.min(255, Math.pow(Math.max(0, sample.B02), 0.7) * 400);
+  return [r, g, b];
+}"
         };
 
         var json = JsonSerializer.Serialize(requestBody);
@@ -145,8 +204,38 @@ public class SatelliteImageService : ISatelliteImageService
             content,
             cancellationToken);
 
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning(
+                "Sentinel Hub returned {Status} for cloud≤{Cloud}% window {From}–{To}: {Body}",
+                response.StatusCode, maxCloud, windowStart, windowEnd, errorBody);
+
+            // 400/422 зазвичай означає "немає знімків у цьому вікні" — не fatal
+            if ((int)response.StatusCode is 400 or 422)
+                return null;
+
+            // Реальна помилка — кидаємо
+            response.EnsureSuccessStatusCode();
+        }
+
+        var imageBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+
+        // Sentinel Hub може повернути 200 з майже пустим або частково чорним зображенням.
+        // Емпірично: чистий 512×512 true-colour PNG Sentinel-2 важить 150–700 KB.
+        // Все що менше 100 KB — підозріло (частково чорний, хмари, no-data tiles).
+        if (imageBytes.Length < 100_000)
+        {
+            _logger.LogWarning(
+                "Image too small ({Bytes} bytes) for cloud≤{Cloud}% window {From}–{To} — likely partial/no data",
+                imageBytes.Length, maxCloud, windowStart, windowEnd);
+            return null;
+        }
+
+        _logger.LogInformation(
+            "Got {Bytes} bytes for cloud≤{Cloud}% window {From}–{To}",
+            imageBytes.Length, maxCloud, windowStart, windowEnd);
+        return imageBytes;
     }
 
     private static (double minLng, double minLat, double maxLng, double maxLat) CalculateBbox(
@@ -154,7 +243,6 @@ public class SatelliteImageService : ISatelliteImageService
         double longitude,
         int radiusMeters)
     {
-        // ~111km per degree
         const double metersPerDegree = 111_000.0;
         var deltaLat = radiusMeters / metersPerDegree;
         var deltaLng = radiusMeters / (metersPerDegree * Math.Cos(latitude * Math.PI / 180));

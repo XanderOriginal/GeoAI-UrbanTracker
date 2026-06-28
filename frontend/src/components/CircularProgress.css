@@ -1,0 +1,207 @@
+.cp-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 4px 0;
+}
+
+/* Ring */
+.cp-ring-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cp-svg {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 0 8px rgba(0,255,136,0.4));
+}
+
+.cp-arc {
+  will-change: stroke-dashoffset;
+}
+
+/* Center text */
+.cp-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.cp-pct {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--neon);
+  text-shadow: 0 0 20px var(--neon-glow), 0 0 40px rgba(0,255,136,0.2);
+  line-height: 1;
+  letter-spacing: -1px;
+  animation: flicker 8s ease-in-out infinite;
+}
+
+.cp-pct-sym {
+  font-size: 16px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.cp-step-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+}
+
+/* Orbiting dot */
+.cp-orbit-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--neon);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--neon), 0 0 16px var(--neon-glow);
+  top: 50%;
+  left: 50%;
+  margin: -4px 0 0 -4px;
+  transform-origin: 0 0;
+  transform:
+    rotate(var(--orbit-angle))
+    translateX(65px);
+  transition: transform 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Step list */
+.cp-steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cp-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-xs);
+  border: 1px solid transparent;
+  background: rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.cp-step.done {
+  background: rgba(0,255,136,0.04);
+  border-color: rgba(0,255,136,0.1);
+}
+
+.cp-step.active {
+  background: var(--neon-dim);
+  border-color: var(--neon-border);
+  box-shadow: 0 0 12px rgba(0,255,136,0.06),
+              inset 0 0 12px rgba(0,255,136,0.04);
+}
+
+.cp-step.future {
+  opacity: 0.35;
+}
+
+/* Step icon */
+.cp-step-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--bg-void);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.cp-step-icon svg { width: 10px; height: 10px; }
+
+.cp-step.done .cp-step-icon {
+  background: var(--neon);
+  border-color: var(--neon);
+  color: #000;
+}
+.cp-step.active .cp-step-icon {
+  border-color: var(--neon);
+  background: var(--neon-dim);
+  color: var(--neon);
+  box-shadow: 0 0 8px var(--neon-glow);
+}
+
+.cp-step-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon);
+  animation: neon-pulse 1s ease-in-out infinite;
+}
+
+/* Step body */
+.cp-step-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cp-step-short {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  transition: color 0.3s;
+}
+.cp-step.done   .cp-step-short { color: var(--neon); }
+.cp-step.active .cp-step-short { color: var(--neon); }
+
+.cp-step-full {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.3s;
+}
+.cp-step.active .cp-step-full { color: var(--text-secondary); }
+.cp-step.done   .cp-step-full { color: var(--text-muted); }
+
+/* Indeterminate bar on active step */
+.cp-step-bar {
+  width: 40px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cp-step-bar-fill {
+  height: 100%;
+  background: var(--neon);
+  box-shadow: 0 0 4px var(--neon-glow);
+  animation: progress-indeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0%   { width: 0%;  margin-left: 0%; }
+  50%  { width: 60%; margin-left: 20%; }
+  100% { width: 0%;  margin-left: 100%; }
+}

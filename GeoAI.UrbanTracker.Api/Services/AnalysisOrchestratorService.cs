@@ -64,10 +64,23 @@ public class AnalysisOrchestratorService : IAnalysisOrchestratorService
             request.Status = AnalysisStatus.AnalyzingWithAi;
             await _db.SaveChangesAsync(cancellationToken);
 
-            var geminiSummary = await _geminiAnalysisService.AnalyzeChangesAsync(
-                beforeImage, afterImage,
-                diff.NdviChangePercent, diff.BuiltUpAreaChangePercent,
-                cancellationToken);
+            string geminiSummary;
+            try
+            {
+                geminiSummary = await _geminiAnalysisService.AnalyzeChangesAsync(
+                    beforeImage, afterImage,
+                    diff.NdviChangePercent, diff.BuiltUpAreaChangePercent,
+                    cancellationToken);
+            }
+            catch (Exception geminiEx)
+            {
+                // Gemini недоступний (503/429) — не вбиваємо весь аналіз
+                _logger.LogWarning(geminiEx,
+                    "Gemini unavailable for {Id} — saving result without AI summary",
+                    analysisRequestId);
+                geminiSummary = "\u26a0 AI analysis temporarily unavailable (Gemini 503). "
+                              + "Spectral metrics above were computed successfully.";
+            }
 
             // зберегти результат
             var result = new AnalysisResult

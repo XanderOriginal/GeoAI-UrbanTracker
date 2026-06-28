@@ -14,15 +14,18 @@ public class AnalysisController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IAnalysisOrchestratorService _orchestrator;
     private readonly ILogger<AnalysisController> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
     public AnalysisController(
         AppDbContext db,
         IAnalysisOrchestratorService orchestrator,
-        ILogger<AnalysisController> logger)
+        ILogger<AnalysisController> logger,
+        IServiceProvider serviceProvider)
     {
         _db = db;
         _orchestrator = orchestrator;
         _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
     [HttpPost]
@@ -45,18 +48,34 @@ public class AnalysisController : ControllerBase
         _db.AnalysisRequests.Add(request);
         await _db.SaveChangesAsync(cancellationToken);
 
-        var result = await _orchestrator.RunAnalysisAsync(request.Id, cancellationToken);
+       
+        var requestId = request.Id;
+        _ = Task.Run(async () =>
+        {
+            
+            await using var scope = _serviceProvider.CreateAsyncScope();
+            var orchestrator = scope.ServiceProvider.GetRequiredService<IAnalysisOrchestratorService>();
+            try
+            {
+                await orchestrator.RunAnalysisAsync(requestId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Background analysis {Id} failed", requestId);
+            }
+        });
 
-        return Ok(MapToDto(request, result));
+     
+        return Accepted(MapToDto(request, null));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AnalysisResultDto>> GetAnalysis(
-    Guid id, CancellationToken cancellationToken)
+        Guid id, CancellationToken cancellationToken)
     {
         var request = await _db.AnalysisRequests
             .Include(r => r.Result)
-            .Include(r => r.SatelliteImages)  // ← додай
+            .Include(r => r.SatelliteImages)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
         if (request is null) return NotFound();
@@ -69,7 +88,7 @@ public class AnalysisController : ControllerBase
     {
         var requests = await _db.AnalysisRequests
             .Include(r => r.Result)
-            .Include(r => r.SatelliteImages)  // ← додай
+            .Include(r => r.SatelliteImages)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -93,7 +112,7 @@ public class AnalysisController : ControllerBase
         return new AnalysisResultDto
         {
             RequestId = request.Id,
-            Status = request.Status,
+            Status = (int)request.Status,  
             ErrorMessage = request.ErrorMessage,
             NdviChangePercent = result?.NdviChangePercent,
             BuiltUpAreaChangePercent = result?.BuiltUpAreaChangePercent,

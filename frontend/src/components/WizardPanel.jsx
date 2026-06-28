@@ -117,15 +117,12 @@ export default function WizardPanel({
                 </div>
               </div>
 
-              <h2 className="wizard-title">ОБЕРІТЬ ЛОКАЦІЮ</h2>
+              <h2 className="wizard-title">CHOOSE A LOCATION</h2>
               <p className="wizard-desc">
-                Клікніть на карту щоб вибрати точку аналізу. Sentinel-2 покриває всю поверхню Землі кожні 5 днів.
+                Click on the map to select an analysis point. Sentinel-2 covers the entire Earth's surface every 5 days.
               </p>
 
-              <div className="wizard-tip">
-                <span className="tip-tag">TIP</span>
-                Київ, Маріуполь, Херсон — там добре видно зміни забудови
-              </div>
+              
             </motion.div>
           )}
 
@@ -152,7 +149,7 @@ export default function WizardPanel({
               {/* Radius */}
               <div className="field-group">
                 <div className="field-header">
-                  <span className="field-label">РАДІУС</span>
+                  <span className="field-label">RADIUS</span>
                   <span className="field-val">{radius >= 1000 ? `${radius/1000} км` : `${radius} м`}</span>
                 </div>
                 <div className="radius-grid">
@@ -171,11 +168,11 @@ export default function WizardPanel({
               {/* Dates */}
               <div className="field-group">
                 <div className="field-header">
-                  <span className="field-label">ЧАСОВИЙ ДІАПАЗОН</span>
+                  <span className="field-label">TIME RANGE</span>
                 </div>
                 <div className="date-row">
                   <div className="date-col">
-                    <span className="date-tag">ВІД</span>
+                    <span className="date-tag">FROM</span>
                     <input
                       type="date"
                       className={`date-input ${dateErrors.dateFrom ? 'err' : ''}`}
@@ -189,7 +186,7 @@ export default function WizardPanel({
                     <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"/>
                   </svg>
                   <div className="date-col">
-                    <span className="date-tag">ДО</span>
+                    <span className="date-tag">TO</span>
                     <input
                       type="date"
                       className={`date-input ${dateErrors.dateTo ? 'err' : ''}`}
@@ -200,13 +197,13 @@ export default function WizardPanel({
                     {dateErrors.dateTo && <span className="date-err">{dateErrors.dateTo}</span>}
                   </div>
                 </div>
-                <p className="date-hint">Sentinel-2 доступний з 07.2015 · хмарність {'<'}30%</p>
+                
               </div>
 
               {/* Note */}
               <div className="wizard-note">
                 <span className="note-tag">INFO</span>
-                Обробка 15–30 сек. Реальні знімки + Gemini 2.5 Flash Vision AI.
+                Processing 15–30 sec.
               </div>
 
               {/* Run button */}
@@ -220,21 +217,21 @@ export default function WizardPanel({
                 {loading ? (
                   <>
                     <div className="btn-spinner" />
-                    ЗАПУСК...
+                    LAUNCHING...
                   </>
                 ) : !canRun ? (
                   <>
                     <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 16, height: 16 }}>
                       <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z"/>
                     </svg>
-                    ВИПРАВТЕ ПОМИЛКИ
+                    FIX THE ERRORS
                   </>
                 ) : (
                   <>
                     <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 16, height: 16 }}>
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
                     </svg>
-                    ЗАПУСТИТИ АНАЛІЗ
+                    RUN ANALYSIS
                   </>
                 )}
               </motion.button>

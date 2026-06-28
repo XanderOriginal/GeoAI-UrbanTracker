@@ -23,6 +23,28 @@
   overflow-x: visible;
 }
 
+.scan-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 2px 0;
+}
+
+.scan-panel-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--text-muted);
+}
+
+.scan-panel-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--neon);
+  text-shadow: 0 0 8px var(--neon-glow);
+}
+
 /* Corner decorations */
 .corner {
   position: absolute;

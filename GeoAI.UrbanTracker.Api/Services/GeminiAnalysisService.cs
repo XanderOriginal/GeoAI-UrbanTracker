@@ -92,9 +92,37 @@ public class GeminiAnalysisService : IGeminiAnalysisService
         _httpClient.DefaultRequestHeaders.Remove("x-goog-api-key");
         _httpClient.DefaultRequestHeaders.Add("x-goog-api-key", _options.ApiKey);
 
-        var response = await _httpClient.PostAsync(url, content, cancellationToken);
+        // Retry з exponential backoff для тимчасових помилок Gemini API
+        // 503 Service Unavailable, 429 Too Many Requests, 500/502/504
+        const int maxAttempts = 4;
+        HttpResponseMessage response = null!;
 
-        response.EnsureSuccessStatusCode();
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            // HttpContent не можна reuse після Send — створюємо новий щоразу
+            var retryContent = new StringContent(json, Encoding.UTF8, "application/json");
+            response = await _httpClient.PostAsync(url, retryContent, cancellationToken);
+
+            if (response.IsSuccessStatusCode) break;
+
+            int status = (int)response.StatusCode;
+            bool isTransient = status is 429 or 500 or 502 or 503 or 504;
+
+            if (!isTransient || attempt == maxAttempts)
+            {
+                var errBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError("Gemini API error {Status} after {Attempt} attempt(s): {Body}",
+                    status, attempt, errBody);
+                response.EnsureSuccessStatusCode();
+            }
+
+            // Exponential backoff: attempt 1→2s, 2→4s, 3→8s
+            var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt));
+            _logger.LogWarning(
+                "Gemini returned {Status}, attempt {Attempt}/{Max} — retrying in {Delay}s...",
+                status, attempt, maxAttempts, delay.TotalSeconds);
+            await Task.Delay(delay, cancellationToken);
+        }
 
         var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
         var responseData = JsonSerializer.Deserialize<JsonElement>(responseJson);

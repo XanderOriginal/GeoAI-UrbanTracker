@@ -28,9 +28,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:3000",   
-                "http://localhost:5173",   
-                "http://localhost:5500",   
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:5500",
                 "http://127.0.0.1:5500"
             )
             .AllowAnyHeader()
@@ -38,8 +38,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        
+        opts.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+    });
+
 builder.Services.AddOpenApi();
+
+Directory.CreateDirectory(Path.Combine("wwwroot", "images"));
 
 var app = builder.Build();
 
@@ -49,11 +57,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseCors("AllowFrontend");
-
 app.MapControllers();
 
 app.Run();
