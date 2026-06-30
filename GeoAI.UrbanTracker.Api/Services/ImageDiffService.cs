@@ -85,7 +85,7 @@ public class ImageDiffService : IImageDiffService
 
     private SpectralProfile AnalyzeImage(byte[] imageBytes, string label)
     {
-        using var bitmap = SKBitmap.Decode(imageBytes)
+        using var bitmap = ImageDecoding.DecodeUnpremultiplied(imageBytes)
             ?? throw new InvalidOperationException($"Cannot decode {label} image.");
 
         // Sample every pixel up to 512×512; stride 2 for larger images
@@ -107,11 +107,14 @@ public class ImageDiffService : IImageDiffService
             for (int x = 0; x < bitmap.Width; x += stepX)
             {
                 var px = bitmap.GetPixel(x, y);
-                byte r = px.Red, g = px.Green, b = px.Blue;
 
-                int brightness = r + g + b;
-                if (brightness < 15) continue; // no-data black
-                if (r > 245 && g > 245 && b > 245) continue; // cloud white
+                // 4-й канал (alpha) — справжня Scene Classification Layer-маска від
+                // Sentinel Hub у стандартній PNG-семантиці: 255 = валідний піксель
+                // (видимий), 0 = хмара/тінь/no-data (прозорий).
+                if (px.Alpha < 128) continue;
+
+                byte r = px.Red, g = px.Green, b = px.Blue;
+                if (r + g + b < 5) continue; // підстраховка: пікселі поза реальним bbox
 
                 validPixels++;
 
