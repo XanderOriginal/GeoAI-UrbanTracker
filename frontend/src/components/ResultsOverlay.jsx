@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import './ResultsOverlay.css';
 
-const BASE_URL = 'http://localhost:5095';
+
 
 function Metric({ label, value, unit = '%', positiveIsBad }) {
   const num = typeof value === 'number' ? value : null;
@@ -134,7 +134,7 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                     </div>
                     {result.beforeImageUrl ? (
                       <img
-                        src={`${BASE_URL}${result.beforeImageUrl}`}
+                        src={result.beforeImageUrl}
                         alt="Before analysis"
                         className="ro-img"
                         onError={e => {
@@ -156,7 +156,7 @@ export default function ResultsOverlay({ result, error, analysisStatus, onClose,
                     </div>
                     {result.afterImageUrl ? (
                       <img
-                        src={`${BASE_URL}${result.afterImageUrl}`}
+                        src={result.afterImageUrl}
                         alt="After analysis"
                         className="ro-img"
                         onError={e => {
