@@ -102,12 +102,7 @@ public class AnalysisController : ControllerBase
         var afterImage = request.SatelliteImages
             .FirstOrDefault(i => !i.IsBeforeImage);
 
-        string? BuildImageUrl(string? filePath)
-        {
-            if (filePath == null) return null;
-            var filename = Path.GetFileName(filePath);
-            return $"/images/{filename}";
-        }
+       
 
         return new AnalysisResultDto
         {
@@ -123,8 +118,8 @@ public class AnalysisController : ControllerBase
             Latitude = request.Latitude,
             Longitude = request.Longitude,
             RadiusMeters = request.RadiusMeters,
-            BeforeImageUrl = BuildImageUrl(beforeImage?.FilePath),
-            AfterImageUrl = BuildImageUrl(afterImage?.FilePath),
+            BeforeImageUrl = beforeImage?.FilePath, 
+            AfterImageUrl = afterImage?.FilePath,
             DateFrom = request.DateFrom,
             DateTo = request.DateTo,
         };

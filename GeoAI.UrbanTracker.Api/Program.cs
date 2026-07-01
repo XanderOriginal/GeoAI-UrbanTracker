@@ -14,6 +14,11 @@ builder.Services.Configure<SentinelHubOptions>(
 builder.Services.Configure<GeminiOptions>(
     builder.Configuration.GetSection(GeminiOptions.SectionName));
 
+builder.Services.Configure<CloudinaryOptions>(
+    builder.Configuration.GetSection(CloudinaryOptions.SectionName));
+
+builder.Services.AddScoped<ICloudStorageService, CloudinaryStorageService>();
+
 builder.Services.AddHttpClient<SatelliteImageService>();
 builder.Services.AddScoped<ISatelliteImageService, SatelliteImageService>();
 
@@ -22,6 +27,8 @@ builder.Services.AddScoped<IGeminiAnalysisService, GeminiAnalysisService>();
 
 builder.Services.AddScoped<IImageDiffService, ImageDiffService>();
 builder.Services.AddScoped<IAnalysisOrchestratorService, AnalysisOrchestratorService>();
+
+
 
 builder.Services.AddCors(options =>
 {

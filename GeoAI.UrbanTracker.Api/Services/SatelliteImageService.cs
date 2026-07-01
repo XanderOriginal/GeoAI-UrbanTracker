@@ -16,16 +16,21 @@ public class SatelliteImageService : ISatelliteImageService
     private readonly ILogger<SatelliteImageService> _logger;
     private string? _accessToken;
     private DateTime _tokenExpiresAt = DateTime.MinValue;
+    private readonly ICloudStorageService _cloudStorage;
 
     public SatelliteImageService(
         HttpClient httpClient,
         IOptions<SentinelHubOptions> options,
+        ICloudStorageService cloudStorage,
         ILogger<SatelliteImageService> logger)
     {
         _httpClient = httpClient;
         _options = options.Value;
+        _cloudStorage = cloudStorage;
         _logger = logger;
     }
+
+   
 
     public async Task<SatelliteImage> FetchImageAsync(
         double latitude,
@@ -42,12 +47,10 @@ public class SatelliteImageService : ISatelliteImageService
         var imageBytes = await FetchSentinelImageAsync(bbox, radiusMeters, date, cancellationToken);
 
         var fileName = $"{analysisRequestId}_{(isBeforeImage ? "before" : "after")}_{date:yyyy-MM-dd}.png";
-        var directory = Path.Combine("wwwroot", "images");
-        Directory.CreateDirectory(directory);
-        var filePath = Path.Combine(directory, fileName);
-        await File.WriteAllBytesAsync(filePath, imageBytes, cancellationToken);
 
-        _logger.LogInformation("Saved satellite image to {FilePath} ({Bytes} bytes)", filePath, imageBytes.Length);
+        var imageUrl = await _cloudStorage.UploadImageAsync(imageBytes, fileName, cancellationToken);
+
+        _logger.LogInformation("Uploaded satellite image to Cloudinary: {Url}", imageUrl);
 
         return new SatelliteImage
         {
@@ -55,7 +58,7 @@ public class SatelliteImageService : ISatelliteImageService
             AnalysisRequestId = analysisRequestId,
             IsBeforeImage = isBeforeImage,
             CaptureDate = date,
-            FilePath = filePath,
+            FilePath = imageUrl,          
             CloudCoveragePercent = 0,
             CreatedAt = DateTime.UtcNow
         };
