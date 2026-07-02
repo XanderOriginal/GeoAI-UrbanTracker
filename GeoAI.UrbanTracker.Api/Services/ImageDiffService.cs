@@ -5,10 +5,12 @@ namespace GeoAI.UrbanTracker.Api.Services;
 
 public class ImageDiffService : IImageDiffService
 {
+    private readonly HttpClient _httpClient;
     private readonly ILogger<ImageDiffService> _logger;
 
-    public ImageDiffService(ILogger<ImageDiffService> logger)
+    public ImageDiffService(HttpClient httpClient, ILogger<ImageDiffService> logger)
     {
+        _httpClient = httpClient;
         _logger = logger;
     }
 
@@ -20,8 +22,8 @@ public class ImageDiffService : IImageDiffService
         _logger.LogInformation("Computing spectral diff: {Before} → {After}",
             beforeImagePath, afterImagePath);
 
-        var beforeBytes = await File.ReadAllBytesAsync(beforeImagePath, cancellationToken);
-        var afterBytes = await File.ReadAllBytesAsync(afterImagePath, cancellationToken);
+        var beforeBytes = await ImageSourceLoader.LoadBytesAsync(_httpClient, beforeImagePath, cancellationToken);
+        var afterBytes = await ImageSourceLoader.LoadBytesAsync(_httpClient, afterImagePath, cancellationToken);
 
         var before = AnalyzeImage(beforeBytes, "BEFORE");
         var after = AnalyzeImage(afterBytes, "AFTER");

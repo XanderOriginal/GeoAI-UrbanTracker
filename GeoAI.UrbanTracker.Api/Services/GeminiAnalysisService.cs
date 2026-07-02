@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using GeoAI.UrbanTracker.Api.Configuration;
+using GeoAI.UrbanTracker.Api.Helpers.ImageProcessing;
 using GeoAI.UrbanTracker.Api.Models;
 using Microsoft.Extensions.Options;
 
@@ -32,8 +33,11 @@ public class GeminiAnalysisService : IGeminiAnalysisService
     {
         _logger.LogInformation("Sending images to Gemini for analysis...");
 
-        var beforeBase64 = Convert.ToBase64String(await File.ReadAllBytesAsync(beforeImage.FilePath, cancellationToken));
-        var afterBase64 = Convert.ToBase64String(await File.ReadAllBytesAsync(afterImage.FilePath, cancellationToken));
+        var beforeBytes = await ImageSourceLoader.LoadBytesAsync(_httpClient, beforeImage.FilePath, cancellationToken);
+        var afterBytes = await ImageSourceLoader.LoadBytesAsync(_httpClient, afterImage.FilePath, cancellationToken);
+
+        var beforeBase64 = Convert.ToBase64String(beforeBytes);
+        var afterBase64 = Convert.ToBase64String(afterBytes);
 
         var prompt = $"""
             You are an expert urban analyst. You are given two satellite images of the same location taken at different times.
